@@ -1,7 +1,7 @@
 const notes = require('express').Router();
-const { readFromFile, readAndAppend} = require('../helpers/fsUtils');
+const { readFromFile, readAndAppend, writeToFile} = require('../helpers/fsUtils');
 const uuid = require('../helpers/uuid');
-const nts = require('../db/db.json');
+const fs = require('fs');
 
 //GET route for retriving all the notes
 
@@ -37,16 +37,12 @@ notes.post('/', (req, res) => {
     }
 });
 
-notes.delete('/notes/:id', (req, res) => {
-    console.info(`${req.method} request received to delete a note`);
-    const found = nts.some(nts => nts.id === req.params.id);
-
-    if (!found) {
-      res.status(400).json({ msg: `No meber whit id of ${req.params.id}` });
-    } else {
-      nts.filter(nts => nts.id !== req.params.id);
-      res.json(nts);
-    }
+//detels saved noted
+notes.delete('/:id', (req, res) => {
+    let db = JSON.parse(fs.readFileSync('./db/db.json'));
+    let noteToBeDeleted = db.filter(note => note.id !== req.params.id);
+    fs.writeFileSync('./db/db.json', JSON.stringify(noteToBeDeleted));
+    res.json(noteToBeDeleted);
     
 });
 
